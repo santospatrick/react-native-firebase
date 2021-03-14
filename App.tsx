@@ -1,7 +1,15 @@
 import React, {useState, useEffect} from 'react';
 import {View, StyleSheet, Alert} from 'react-native';
-import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth';
 import {Button, Input, Text} from 'react-native-elements';
+import {SocialIcon} from 'react-native-elements/dist/social/SocialIcon';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import {Avatar} from 'react-native-elements/dist/avatar/Avatar';
+
+GoogleSignin.configure();
 
 const styles = StyleSheet.create({
   container: {
@@ -10,10 +18,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    marginTop: 8,
     marginBottom: 60,
   },
   button: {
     marginTop: 8,
+  },
+  socialButton: {
+    paddingHorizontal: 20,
   },
 });
 
@@ -25,11 +37,17 @@ const Centered = ({children}: CenteredProps) => (
   <View style={styles.container}>{children}</View>
 );
 
+type User = {
+  displayName: string | null | undefined;
+  email: string | null | undefined;
+  photoURL: string | null | undefined;
+};
+
 function App() {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState<boolean>(false);
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [formState, setFormState] = useState<{email: string; password: string}>(
     {
       email: '',
@@ -39,12 +57,14 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged((userState) => {
-      setUser(userState);
-
-      if (loading) {
-        setLoading(false);
-      }
+      setUser({
+        displayName: userState?.displayName,
+        email: userState?.email,
+        photoURL: userState?.photoURL,
+      });
     });
+
+    setLoading(false);
 
     return unsubscribe;
   }, []);
@@ -58,9 +78,6 @@ function App() {
     setSubmitLoading(true);
     auth()
       .signInWithEmailAndPassword(formState.email, formState.password)
-      .then((data) => {
-        setUser(data.user);
-      })
       .finally(() => {
         setSubmitLoading(false);
       });
@@ -74,14 +91,27 @@ function App() {
 
     auth()
       .createUserWithEmailAndPassword(formState.email, formState.password)
-      .then((data) => {
-        setUser(data.user);
+      .then(() => {
         setIsCreatingAccount(false);
       });
   };
 
+  const handleGoogleSigin = async () => {
+    await GoogleSignin.hasPlayServices();
+    const data = await GoogleSignin.signIn();
+    setUser({
+      displayName: data.user.name,
+      email: data.user.email,
+      photoURL: data.user.photo,
+    });
+  };
+
   const handleSignout = () => {
-    auth().signOut();
+    auth()
+      .signOut()
+      .catch(() => {
+        setUser(null);
+      });
   };
 
   if (loading) {
@@ -117,6 +147,7 @@ function App() {
           onPress={handleSignup}
           title="Sign up"
         />
+
         <Button
           style={styles.button}
           title="Go back"
@@ -155,6 +186,17 @@ function App() {
           loading={submitLoading}
           title="Sign in"
         />
+        <SocialIcon
+          raised
+          iconType="font-awesome"
+          iconColor="white"
+          iconSize={24}
+          onPress={handleGoogleSigin}
+          style={styles.socialButton}
+          title="Sign In With Google"
+          button
+          type="google"
+        />
         <Button
           style={styles.button}
           onPress={() => setIsCreatingAccount(true)}
@@ -166,8 +208,15 @@ function App() {
 
   return (
     <Centered>
-      <Text h4 style={styles.title}>
-        Welcome {user.email}
+      <Avatar
+        size="medium"
+        rounded
+        source={{
+          uri: user.photoURL || '',
+        }}
+      />
+      <Text style={styles.title}>
+        Welcome {user.displayName || user.email}!
       </Text>
       <Button onPress={handleSignout} title="Sign out" />
     </Centered>

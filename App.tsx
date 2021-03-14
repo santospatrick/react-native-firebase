@@ -27,6 +27,9 @@ const styles = StyleSheet.create({
   socialButton: {
     paddingHorizontal: 20,
   },
+  avatar: {
+    backgroundColor: '#BCBEC1',
+  },
 });
 
 type CenteredProps = {
@@ -57,11 +60,13 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged((userState) => {
-      setUser({
-        displayName: userState?.displayName,
-        email: userState?.email,
-        photoURL: userState?.photoURL,
-      });
+      if (userState) {
+        setUser({
+          displayName: userState?.displayName,
+          email: userState?.email,
+          photoURL: userState?.photoURL,
+        });
+      }
     });
 
     setLoading(false);
@@ -205,16 +210,15 @@ function App() {
       </Centered>
     );
   }
-
   return (
     <Centered>
       <Avatar
-        size="medium"
+        containerStyle={styles.avatar}
         rounded
-        source={{
-          uri: user.photoURL || '',
-        }}
+        icon={{name: 'home'}}
+        source={user.photoURL ? {uri: user.photoURL} : {}}
       />
+
       <Text style={styles.title}>
         Welcome {user.displayName || user.email}!
       </Text>

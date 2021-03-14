@@ -114,8 +114,10 @@ function App() {
   const handleSignout = () => {
     auth()
       .signOut()
-      .catch(() => {
-        setUser(null);
+      .catch((error) => {
+        if (error.code === 'auth/no-current-user') {
+          setUser(null);
+        }
       });
   };
 

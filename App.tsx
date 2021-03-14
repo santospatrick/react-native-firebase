@@ -1,118 +1,177 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-declare const global: {HermesInternal: null | {}};
-
-const App = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
+import React, {useState, useEffect} from 'react';
+import {View, StyleSheet, Alert} from 'react-native';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {Button, Input, Text} from 'react-native-elements';
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  title: {
+    marginBottom: 60,
   },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
+  button: {
     marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
   },
 });
+
+type CenteredProps = {
+  children: React.ReactNode;
+};
+
+const Centered = ({children}: CenteredProps) => (
+  <View style={styles.container}>{children}</View>
+);
+
+function App() {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState<boolean>(false);
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [formState, setFormState] = useState<{email: string; password: string}>(
+    {
+      email: '',
+      password: '',
+    },
+  );
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged((userState) => {
+      setUser(userState);
+
+      if (loading) {
+        setLoading(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogin = () => {
+    if (!formState.email || !formState.password) {
+      Alert.alert('all fields required!');
+      return;
+    }
+
+    setSubmitLoading(true);
+    auth()
+      .signInWithEmailAndPassword(formState.email, formState.password)
+      .then((data) => {
+        setUser(data.user);
+      })
+      .finally(() => {
+        setSubmitLoading(false);
+      });
+  };
+
+  const handleSignup = () => {
+    if (!formState.email || !formState.password) {
+      Alert.alert('all fields required!');
+      return;
+    }
+
+    auth()
+      .createUserWithEmailAndPassword(formState.email, formState.password)
+      .then((data) => {
+        setUser(data.user);
+        setIsCreatingAccount(false);
+      });
+  };
+
+  const handleSignout = () => {
+    auth().signOut();
+  };
+
+  if (loading) {
+    return null;
+  }
+
+  if (isCreatingAccount) {
+    return (
+      <Centered>
+        <Text h3 style={styles.title}>
+          Create and account
+        </Text>
+        <Input
+          onChangeText={(text) =>
+            setFormState((prevState) => ({...prevState, email: text}))
+          }
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholder="e-mail"
+          leftIcon={{name: 'email'}}
+        />
+        <Input
+          onChangeText={(text) =>
+            setFormState((prevState) => ({...prevState, password: text}))
+          }
+          secureTextEntry
+          placeholder="password"
+          leftIcon={{name: 'lock'}}
+        />
+        <Button
+          style={styles.button}
+          loading={submitLoading}
+          onPress={handleSignup}
+          title="Sign up"
+        />
+        <Button
+          style={styles.button}
+          title="Go back"
+          onPress={() => setIsCreatingAccount(false)}
+        />
+      </Centered>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Centered>
+        <Text h3 style={styles.title}>
+          Login
+        </Text>
+        <Input
+          onChangeText={(text) =>
+            setFormState((prevState) => ({...prevState, email: text}))
+          }
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholder="e-mail"
+          leftIcon={{name: 'email'}}
+        />
+        <Input
+          onChangeText={(text) =>
+            setFormState((prevState) => ({...prevState, password: text}))
+          }
+          secureTextEntry
+          placeholder="password"
+          leftIcon={{name: 'lock'}}
+        />
+        <Button
+          style={styles.button}
+          onPress={handleLogin}
+          loading={submitLoading}
+          title="Sign in"
+        />
+        <Button
+          style={styles.button}
+          onPress={() => setIsCreatingAccount(true)}
+          title="Create an account"
+        />
+      </Centered>
+    );
+  }
+
+  return (
+    <Centered>
+      <Text h4 style={styles.title}>
+        Welcome {user.email}
+      </Text>
+      <Button onPress={handleSignout} title="Sign out" />
+    </Centered>
+  );
+}
 
 export default App;

@@ -964,6 +964,11 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
+"@react-native-community/checkbox@^0.5.7":
+  version "0.5.7"
+  resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.5.7.tgz#ac818de88736acc1a4539188f2d435cf5e845ae1"
+  integrity sha512-CiHBAMWy5fsFIHLd1pf8frlWrLT8DnCXUSxdlGKazHm7srQSReKH4R5absShjmYOHRo9raWEnKZO/cm7MUDHZg==
+
 "@react-native-community/cli-debugger-ui@^4.13.1":
   version "4.13.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-debugger-ui/-/cli-debugger-ui-4.13.1.tgz#07de6d4dab80ec49231de1f1fbf658b4ad39b32c"
@@ -1120,6 +1125,11 @@
   version "11.1.0"
   resolved "https://registry.yarnpkg.com/@react-native-firebase/auth/-/auth-11.1.0.tgz#83d7651b5ce74af408d0d6b8207f61d6308d1c0e"
   integrity sha512-53emDL/7Onhv2w3tLQMGsGjes/RsyYvI2XKW2e9vrGOmN43lIvDBjbnMS1ChnEPgNTSjuYJAmoZJMdUjKEHBSw==
+
+"@react-native-firebase/firestore@^11.1.1":
+  version "11.1.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/firestore/-/firestore-11.1.1.tgz#1a29e709a5bfeb476640f2922c6e6dc29c0b19e1"
+  integrity sha512-jAjg/7yASS0t4xKB9gFTAHRIiW5seLta3+zyWh204KEP+XWxpJ+Q/sGawbZmLxMHVApgJcPmP2FDOIe7TAs33w==
 
 "@react-native-google-signin/google-signin@^6.0.0":
   version "6.0.0"

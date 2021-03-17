@@ -175,7 +175,7 @@ function App() {
         item.id === todo.id ? {...todo, isDone: !todo.isDone} : todo,
       ),
     );
-    // firestore().collection('todos').doc(todo.id).update({isDone: !todo.isDone});
+    firestore().collection('todos').doc(todo.id).update({isDone: !todo.isDone});
   };
 
   if (loading) {
